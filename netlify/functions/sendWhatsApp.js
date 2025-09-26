@@ -29,7 +29,7 @@ const db = getFirestore();
 
 export async function handler(event) {
   const corsHeaders = {
-    "Access-Control-Allow-Origin": "*", // 👈 use your frontend URL in production
+    "Access-Control-Allow-Origin": process.env.CLIENT_URL || "*",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
@@ -37,7 +37,7 @@ export async function handler(event) {
   // 🔹 Handle preflight OPTIONS request (CORS)
   if (event.httpMethod === "OPTIONS") {
     return {
-      statusCode: 200,
+      statusCode: 204,
       headers: corsHeaders,
       body: "Preflight OK",
     };
