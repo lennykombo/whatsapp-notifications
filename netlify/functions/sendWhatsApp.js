@@ -1,9 +1,11 @@
 import fetch from "node-fetch";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import "dotenv/config";
+
 
 // 🔹 Build service account object from individual env vars
-const serviceAccount = {
+/*const serviceAccount = {
   type: process.env.FB_TYPE,
   project_id: process.env.FB_PROJECT_ID,
   private_key_id: process.env.FB_PRIVATE_KEY_ID,
@@ -14,7 +16,9 @@ const serviceAccount = {
   token_uri: process.env.FB_TOKEN_URI,
   auth_provider_x509_cert_url: process.env.FB_AUTH_PROVIDER_X509_CERT_URL,
   client_x509_cert_url: process.env.FB_CLIENT_X509_CERT_URL,
-};
+};*/
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
 // ✅ Init Firebase Admin (only once per cold start)
 if (!getApps().length) {
