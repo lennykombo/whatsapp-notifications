@@ -2,24 +2,10 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import "dotenv/config";
 
-
-// 🔹 Build service account object from individual env vars
-/*const serviceAccount = {
-  type: process.env.FB_TYPE,
-  project_id: process.env.FB_PROJECT_ID,
-  private_key_id: process.env.FB_PRIVATE_KEY_ID,
-  private_key: process.env.FB_PRIVATE_KEY.replace(/\\n/g, "\n"), // 🔑 very important for multiline key
-  client_email: process.env.FB_CLIENT_EMAIL,
-  client_id: process.env.FB_CLIENT_ID,
-  auth_uri: process.env.FB_AUTH_URI,
-  token_uri: process.env.FB_TOKEN_URI,
-  auth_provider_x509_cert_url: process.env.FB_AUTH_PROVIDER_X509_CERT_URL,
-  client_x509_cert_url: process.env.FB_CLIENT_X509_CERT_URL,
-};*/
-
+// 🔹 Parse service account JSON from env
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
-// ✅ Init Firebase Admin (only once per cold start)
+// ✅ Init Firebase Admin only once
 if (!getApps().length) {
   initializeApp({
     credential: cert(serviceAccount),
@@ -29,32 +15,33 @@ const db = getFirestore();
 
 export async function handler(event) {
   const corsHeaders = {
-    "Access-Control-Allow-Origin": process.env.CLIENT_URL || "*",
+    "Access-Control-Allow-Origin": process.env.CLIENT_URL || "*", // 👈 set in Netlify env
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 
-  // 🔹 Handle preflight OPTIONS request (CORS)
+  // 🔹 Handle preflight OPTIONS request
   if (event.httpMethod === "OPTIONS") {
     return {
-      statusCode: 204,
+      statusCode: 204, // No Content
       headers: corsHeaders,
-      body: "Preflight OK",
+      body: "",
     };
   }
 
+  // 🔹 Allow only POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
       headers: corsHeaders,
-      body: "Method Not Allowed",
+      body: JSON.stringify({ error: "Method Not Allowed" }),
     };
   }
 
   try {
     const { restaurantId, toNumber, message } = JSON.parse(event.body);
 
-    console.log("Incoming Payload:", { restaurantId, toNumber, message });
+    console.log("📥 Incoming Payload:", { restaurantId, toNumber, message });
 
     if (!restaurantId || !toNumber || !message) {
       return {
@@ -64,7 +51,7 @@ export async function handler(event) {
       };
     }
 
-    // 🔑 Fetch restaurant credentials
+    // 🔑 Fetch restaurant credentials from Firestore
     const doc = await db.collection("restaurants").doc(restaurantId).get();
     if (!doc.exists) {
       return {
@@ -75,7 +62,7 @@ export async function handler(event) {
     }
 
     const { phoneNumberId, whatsappToken, defaultNotifyNumber } = doc.data();
-    console.log("Restaurant Credentials:", {
+    console.log("📲 Restaurant Credentials:", {
       phoneNumberId,
       whatsappTokenExists: !!whatsappToken,
       defaultNotifyNumber,
@@ -98,7 +85,7 @@ export async function handler(event) {
     });
 
     const data = await res.json();
-    console.log("WhatsApp API Response:", data);
+    console.log("✅ WhatsApp API Response:", data);
 
     return {
       statusCode: res.ok ? 200 : res.status,
@@ -106,7 +93,7 @@ export async function handler(event) {
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error("Error sending WhatsApp:", error);
+    console.error("❌ Error sending WhatsApp:", error);
     return {
       statusCode: 500,
       headers: corsHeaders,
