@@ -53,7 +53,7 @@ export async function handler(event) {
     }
 
     // 🔑 Fetch restaurant credentials from Firestore
-    const doc = await db.collection("restaurants").doc(restaurantId).get();
+  /*  const doc = await db.collection("restaurants").doc(restaurantId).get();
 
      if (!doc.exists) {
   // fallback to users collection
@@ -66,7 +66,21 @@ export async function handler(event) {
         headers: corsHeaders,
         body: JSON.stringify({ error: "Restaurant not found" }),
       };
-    }
+    }*/
+   let doc = await db.collection("restaurants").doc(restaurantId).get();
+
+if (!doc.exists) {
+  doc = await db.collection("users").doc(restaurantId).get();
+}
+
+if (!doc.exists) {
+  return {
+    statusCode: 404,
+    headers: corsHeaders,
+    body: JSON.stringify({ error: "Restaurant not found" }),
+  };
+}
+
 
     const { phoneNumberId, whatsappToken, defaultNotifyNumber } = doc.data();
     console.log("📲 Restaurant Credentials:", {
