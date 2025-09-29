@@ -15,7 +15,8 @@ const db = getFirestore();
 
 export async function handler(event) {
   const corsHeaders = {
-    "Access-Control-Allow-Origin": process.env.CLIENT_URL || "*", // 👈 set in Netlify env
+   // "Access-Control-Allow-Origin": process.env.CLIENT_URL || "*", // 👈 set in Netlify env
+    "Access-Control-Allow-Origin": "https://reserveme.ke", 
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
