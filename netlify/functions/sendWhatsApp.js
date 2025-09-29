@@ -54,6 +54,12 @@ export async function handler(event) {
 
     // 🔑 Fetch restaurant credentials from Firestore
     const doc = await db.collection("restaurants").doc(restaurantId).get();
+
+     if (!doc.exists) {
+  // fallback to users collection
+     doc = await db.collection("users").doc(restaurantId).get();
+    }
+
     if (!doc.exists) {
       return {
         statusCode: 404,
